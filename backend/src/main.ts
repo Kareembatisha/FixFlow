@@ -22,6 +22,18 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
+  const corsOrigins = configService
+    .get<string>('CORS_ORIGINS', 'http://localhost:4200')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  app.enableCors({
+    origin: corsOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   const port = configService.getOrThrow<number>('app.port');
   await app.listen(port);
 }

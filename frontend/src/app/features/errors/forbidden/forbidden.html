@@ -1,0 +1,11 @@
+<section class="forbidden" aria-labelledby="forbidden-title">
+  <p class="code">403</p>
+  <h1 id="forbidden-title">You don't have access to this page</h1>
+  <p class="lead">
+    @if (auth.role(); as role) {
+      Your {{ roleLabels[role] }} account can't open this section.
+    }
+    If you think this is a mistake, ask an administrator to review your role.
+  </p>
+  <a class="btn btn-primary" [routerLink]="auth.homePath()">Back to my workspace</a>
+</section>

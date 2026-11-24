@@ -1,0 +1,15 @@
+.card {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 26rem);
+}
+
+.lead,
+.switch {
+  color: var(--muted);
+}
+
+form {
+  display: grid;
+  gap: 1.25rem;
+}

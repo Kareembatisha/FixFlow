@@ -1,0 +1,98 @@
+<section class="card" aria-labelledby="register-title">
+  <h1 id="register-title">Create your account</h1>
+  <p class="lead">Register as a customer to submit and follow repair requests.</p>
+
+  @if (serverError(); as err) {
+    <div class="alert alert-error" role="alert">
+      {{ err.message }}
+      @if (err.details.length) {
+        <ul>
+          @for (d of err.details; track d) {
+            <li>{{ d }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="field">
+      <label for="fullName">Full name</label>
+      <input
+        id="fullName"
+        type="text"
+        formControlName="fullName"
+        autocomplete="name"
+        [attr.aria-invalid]="fullNameError() ? 'true' : null"
+        [attr.aria-describedby]="fullNameError() ? 'fullName-error' : null"
+      />
+      @if (fullNameError(); as msg) {
+        <p class="field-error" id="fullName-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        autocomplete="email"
+        [attr.aria-invalid]="emailError() ? 'true' : null"
+        [attr.aria-describedby]="emailError() ? 'email-error' : null"
+      />
+      @if (emailError(); as msg) {
+        <p class="field-error" id="email-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password <span class="hint">(8 to 72 characters)</span></label>
+      <input
+        id="password"
+        [type]="showPassword() ? 'text' : 'password'"
+        formControlName="password"
+        autocomplete="new-password"
+        [attr.aria-invalid]="passwordError() ? 'true' : null"
+        [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+      />
+      @if (passwordError(); as msg) {
+        <p class="field-error" id="password-error">{{ msg }}</p>
+      }
+      <label class="check">
+        <input
+          type="checkbox"
+          [checked]="showPassword()"
+          (change)="showPassword.set(!showPassword())"
+        />
+        Show password
+      </label>
+    </div>
+
+    <div class="field">
+      <label for="phone">Phone <span class="hint">(optional)</span></label>
+      <input
+        id="phone"
+        type="tel"
+        formControlName="phone"
+        autocomplete="tel"
+        [attr.aria-invalid]="phoneError() ? 'true' : null"
+        [attr.aria-describedby]="phoneError() ? 'phone-error' : null"
+      />
+      @if (phoneError(); as msg) {
+        <p class="field-error" id="phone-error">{{ msg }}</p>
+      }
+    </div>
+
+    <button
+      class="btn btn-primary"
+      type="submit"
+      [disabled]="submitting()"
+      [attr.aria-busy]="submitting()"
+    >
+      {{ submitting() ? 'Creating account…' : 'Create account' }}
+    </button>
+  </form>
+
+  <p class="switch">Already registered? <a routerLink="/login">Sign in</a></p>
+</section>

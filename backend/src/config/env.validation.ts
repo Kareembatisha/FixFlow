@@ -7,9 +7,8 @@ export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test')
     .default('development'),
-  
-  
-    // jwt
+
+  // jwt
   JWT_SECRET: Joi.string().min(32).required(),
 
   // Database
@@ -22,4 +21,6 @@ export const envValidationSchema = Joi.object({
   DB_PASSWORD: Joi.string().required(),
 
   DB_DATABASE: Joi.string().required(),
+
+  CORS_ORIGINS: Joi.string().optional().allow(''),
 });

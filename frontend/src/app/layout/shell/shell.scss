@@ -1,0 +1,43 @@
+.content {
+  min-height: calc(100dvh - var(--navbar-h));
+  padding: 1.5rem clamp(1rem, 3vw, 2.5rem);
+  margin-left: var(--sidebar-w);
+}
+
+.content:focus {
+  outline: none;
+}
+
+.skip {
+  position: absolute;
+  top: -3rem;
+  left: 0.5rem;
+  z-index: 50;
+  padding: 0.5rem 0.75rem;
+  color: var(--ink);
+  background: var(--signal);
+}
+
+.skip:focus {
+  top: 0.5rem;
+}
+
+.backdrop {
+  position: fixed;
+  inset: var(--navbar-h) 0 0;
+  z-index: 10;
+  background: rgb(20 35 43 / 45%);
+  border: 0;
+}
+
+@media (max-width: 800px) {
+  .content {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 801px) {
+  .backdrop {
+    display: none;
+  }
+}

@@ -1,59 +1,45 @@
-# Frontend
+# FixFlow – Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+Angular 21 (standalone components, signals, zoneless) client for the FixFlow API.
 
-## Development server
-
-To start a local development server, run:
+## Run
 
 ```bash
-ng serve
+npm install
+npm start          # http://localhost:4200  (needs the API on http://localhost:3000)
+npm run build      # production build
+npm test           # unit + component tests (Vitest)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+API base URL: `src/environments/environment.development.ts` (dev) and `src/environments/environment.ts`
+(production build; set the real API origin before deploying). The backend must allow the frontend origin via
+CORS (`CORS_ORIGINS`, default `http://localhost:4200`).
 
-## Code scaffolding
+## Structure
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```
+src/app/
+  core/        models, config (API_URL, navigation), services (AuthService, TokenStorage),
+               interceptors (auth, error), guards (auth, guest, role), utils
+  layout/      shell (signed-in frame), navbar, sidebar, auth-layout (signed-out frame)
+  features/    auth (login, register), profile, errors/forbidden, placeholder (future modules)
+  shared/      forms helpers
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Authentication
 
-```bash
-ng generate --help
-```
+- `AuthService` owns the state as signals: `token`, `user`, `role`, `isAuthenticated`, `initialized`.
+- Only the access token is persisted (localStorage, key `fixflow.accessToken`). The user is re-fetched from
+  `GET /auth/me` on every page load via `provideAppInitializer`, so guards always see confirmed state.
+- **Security note:** the API issues Bearer tokens in the response body, so the frontend has to store the token.
+  localStorage is readable by any script on the page (no HttpOnly protection); an XSS flaw could leak it. Keep
+  third-party scripts out, never log tokens, and consider HttpOnly cookies (a backend change) for production.
+- `authInterceptor` adds the header only to FixFlow API calls (never other origins, never login/register).
+  `errorInterceptor` handles 401 (clear session, go to `/login?returnUrl=...`) and 403 (go to `/403`) and always
+  re-throws the original error so forms can show the server message.
+- Route guards (`authGuard`, `roleGuard`) are UX only. The API enforces authorization.
 
-## Building
+## Roles and navigation
 
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Navigation and route access come from one table: `src/app/core/config/navigation.config.ts`.
+Add a page there (`NAV_ITEMS`) and derive route roles with `rolesFor('/path')`.

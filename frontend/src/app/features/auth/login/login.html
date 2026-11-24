@@ -1,0 +1,79 @@
+<section class="card" aria-labelledby="login-title">
+  <h1 id="login-title">Sign in</h1>
+  <p class="lead">Use the email and password for your FixFlow account.</p>
+
+  @if (notice(); as n) {
+    <p
+      class="alert"
+      [class.alert-success]="n.kind === 'success'"
+      [class.alert-info]="n.kind === 'info'"
+      role="status"
+    >
+      {{ n.text }}
+    </p>
+  }
+
+  @if (serverError(); as err) {
+    <div class="alert alert-error" role="alert">
+      {{ err.message }}
+      @if (err.details.length) {
+        <ul>
+          @for (d of err.details; track d) {
+            <li>{{ d }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        autocomplete="username"
+        [attr.aria-invalid]="emailError() ? 'true' : null"
+        [attr.aria-describedby]="emailError() ? 'email-error' : null"
+      />
+      @if (emailError(); as msg) {
+        <p class="field-error" id="email-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        [type]="showPassword() ? 'text' : 'password'"
+        formControlName="password"
+        autocomplete="current-password"
+        [attr.aria-invalid]="passwordError() ? 'true' : null"
+        [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+      />
+      @if (passwordError(); as msg) {
+        <p class="field-error" id="password-error">{{ msg }}</p>
+      }
+      <label class="check">
+        <input
+          type="checkbox"
+          [checked]="showPassword()"
+          (change)="showPassword.set(!showPassword())"
+        />
+        Show password
+      </label>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      type="submit"
+      [disabled]="submitting()"
+      [attr.aria-busy]="submitting()"
+    >
+      {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+
+  <p class="switch">New to FixFlow? <a routerLink="/register">Create an account</a></p>
+</section>

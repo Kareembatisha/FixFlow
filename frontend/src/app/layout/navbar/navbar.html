@@ -1,0 +1,24 @@
+<header class="navbar">
+  <button
+    class="menu"
+    type="button"
+    aria-controls="sidebar"
+    aria-label="Toggle navigation menu"
+    (click)="menuToggle.emit()"
+  >
+    <span aria-hidden="true">☰</span>
+  </button>
+  <span class="brand">FixFlow</span>
+
+  <div class="spacer"></div>
+
+  @if (auth.user(); as user) {
+    <div class="who">
+      <span class="name">{{ user.fullName }}</span>
+      <span class="role" data-testid="role-badge">{{ roleLabels[user.role] }}</span>
+    </div>
+    <button class="logout" type="button" (click)="logout()" [disabled]="loggingOut()">
+      Log out
+    </button>
+  }
+</header>
