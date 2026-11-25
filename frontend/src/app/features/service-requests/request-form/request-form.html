@@ -1,0 +1,127 @@
+<section class="page" aria-labelledby="form-title">
+  <a class="back" routerLink="/my-requests">&larr; Back to my requests</a>
+  <h1 id="form-title">New service request</h1>
+  <p class="lead">Tell us what needs fixing and where. We'll review it and assign a technician.</p>
+
+  @if (typesError(); as err) {
+    <div class="alert alert-error" role="alert">
+      {{ err.message }}
+      <button type="button" class="btn btn-outline retry" (click)="loadServiceTypes()">
+        Try again
+      </button>
+    </div>
+  }
+
+  @if (serverError(); as err) {
+    <div class="alert alert-error" role="alert">
+      {{ err.message }}
+      @if (err.details.length) {
+        <ul>
+          @for (detail of err.details; track detail) {
+            <li>{{ detail }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <label for="serviceTypeId">Service type</label>
+      <select
+        id="serviceTypeId"
+        formControlName="serviceTypeId"
+        [attr.aria-invalid]="serviceTypeError() ? 'true' : null"
+        [attr.aria-describedby]="serviceTypeError() ? 'serviceTypeId-error' : null"
+      >
+        <option value="" disabled>
+          {{ typesLoading() ? 'Loading service types…' : 'Select a service type' }}
+        </option>
+        @for (type of serviceTypes(); track type.id) {
+          <option [value]="type.id">{{ type.name }}</option>
+        }
+      </select>
+      @if (serviceTypeError(); as msg) {
+        <p class="field-error" id="serviceTypeId-error">{{ msg }}</p>
+      }
+      @if (!typesLoading() && !typesError() && serviceTypes().length === 0) {
+        <p class="hint">No service types are available right now.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="title">Title</label>
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        [attr.aria-invalid]="titleError() ? 'true' : null"
+        [attr.aria-describedby]="titleError() ? 'title-error' : null"
+      />
+      @if (titleError(); as msg) {
+        <p class="field-error" id="title-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        rows="5"
+        formControlName="description"
+        [attr.aria-invalid]="descriptionError() ? 'true' : null"
+        [attr.aria-describedby]="descriptionError() ? 'description-error' : null"
+      ></textarea>
+      @if (descriptionError(); as msg) {
+        <p class="field-error" id="description-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="address">Address</label>
+      <input
+        id="address"
+        type="text"
+        autocomplete="street-address"
+        formControlName="address"
+        [attr.aria-invalid]="addressError() ? 'true' : null"
+        [attr.aria-describedby]="addressError() ? 'address-error' : null"
+      />
+      @if (addressError(); as msg) {
+        <p class="field-error" id="address-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="contactPhone">Contact phone</label>
+      <input
+        id="contactPhone"
+        type="tel"
+        autocomplete="tel"
+        formControlName="contactPhone"
+        [attr.aria-invalid]="phoneError() ? 'true' : null"
+        [attr.aria-describedby]="phoneError() ? 'contactPhone-error' : null"
+      />
+      @if (phoneError(); as msg) {
+        <p class="field-error" id="contactPhone-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="preferredDate">Preferred date <span class="optional">(optional)</span></label>
+      <input id="preferredDate" type="date" formControlName="preferredDate" />
+    </div>
+
+    <div class="actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="submitting() || typesLoading()"
+        [attr.aria-busy]="submitting()"
+      >
+        {{ submitting() ? 'Submitting…' : 'Submit request' }}
+      </button>
+      <a class="btn btn-outline" routerLink="/my-requests">Cancel</a>
+    </div>
+  </form>
+</section>

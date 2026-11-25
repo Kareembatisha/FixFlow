@@ -1,0 +1,109 @@
+<section class="page" aria-labelledby="list-title">
+  <header class="header">
+    <h1 id="list-title">My requests</h1>
+    <a class="btn btn-primary" routerLink="/my-requests/new">New request</a>
+  </header>
+
+  <div class="filters" role="search">
+    <div class="field grow">
+      <label for="search">Search</label>
+      <input
+        id="search"
+        type="search"
+        placeholder="Request code or title"
+        autocomplete="off"
+        [formControl]="searchControl"
+      />
+    </div>
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status" [formControl]="statusControl">
+        <option value="">All statuses</option>
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (error(); as err) {
+    <div class="alert alert-error" role="alert">
+      {{ err.message }}
+      <button type="button" class="btn btn-outline retry" (click)="retry()">Try again</button>
+    </div>
+  } @else if (!result()) {
+    <p class="state" role="status">Loading your requests…</p>
+  } @else {
+    @let page = result()!;
+    @if (page.items.length === 0) {
+      <div class="state empty">
+        @if (hasFilters()) {
+          <p>No requests match your search or filter.</p>
+          <button type="button" class="btn btn-outline" (click)="clearFilters()">
+            Clear filters
+          </button>
+        } @else {
+          <p>You haven't submitted any requests yet.</p>
+          <a class="btn btn-primary" routerLink="/my-requests/new">Create your first request</a>
+        }
+      </div>
+    } @else {
+      <p class="summary" role="status">
+        {{ page.meta.total }} {{ page.meta.total === 1 ? 'request' : 'requests' }}
+      </p>
+      <div class="table-wrap" [class.busy]="loading()" [attr.aria-busy]="loading()">
+        <table>
+          <caption class="visually-hidden">
+            Your service requests
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Title</th>
+              <th scope="col">Service type</th>
+              <th scope="col">Priority</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (request of page.items; track request.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/my-requests', request.id]">{{ request.code }}</a>
+                </td>
+                <td class="title">{{ request.title }}</td>
+                <td>{{ typeName(request.serviceTypeId) }}</td>
+                <td>{{ priorityLabel(request.priority) }}</td>
+                <td><app-status-badge [status]="request.status" /></td>
+                <td>{{ formatDate(request.createdAt) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (page.meta.totalPages > 1) {
+        <nav class="pager" aria-label="Pagination">
+          <button
+            type="button"
+            class="btn btn-outline"
+            [disabled]="loading() || page.meta.page <= 1"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+          <span>Page {{ page.meta.page }} of {{ page.meta.totalPages }}</span>
+          <button
+            type="button"
+            class="btn btn-outline"
+            [disabled]="loading() || page.meta.page >= page.meta.totalPages"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </nav>
+      }
+    }
+  }
+</section>

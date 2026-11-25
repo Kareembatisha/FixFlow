@@ -1,0 +1,58 @@
+:host {
+  display: inline-block;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--badge-ink);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-ink);
+  border-radius: 999px;
+}
+
+.status-new {
+  --badge-ink: #0a3f48;
+  --badge-bg: #e3f0f1;
+}
+
+.status-reviewed {
+  --badge-ink: #2b3585;
+  --badge-bg: #e8eaf6;
+}
+
+.status-assigned {
+  --badge-ink: #4a2b8a;
+  --badge-bg: #ede7f6;
+}
+
+.status-in_progress {
+  --badge-ink: #6b4a00;
+  --badge-bg: #fff4d6;
+}
+
+.status-pending_review {
+  --badge-ink: #7a3200;
+  --badge-bg: #fde8d6;
+}
+
+.status-completed {
+  --badge-ink: #0f4527;
+  --badge-bg: #e6f4ea;
+}
+
+.status-cancelled {
+  --badge-ink: #3d4a50;
+  --badge-bg: #eceff0;
+}
+
+.status-unknown {
+  --badge-ink: #3d4a50;
+  --badge-bg: #ffffff;
+
+  border-style: dashed;
+}

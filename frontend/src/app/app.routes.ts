@@ -10,7 +10,6 @@ import { Shell } from './layout/shell/shell';
 
 /** Copy for pages whose real module lands in a later sprint. Access comes from NAV_ITEMS. */
 const PLACEHOLDER_PAGES: Record<string, string> = {
-  '/my-requests': 'Follow the repair requests you have submitted.',
   '/my-tasks': 'See the jobs assigned to you.',
   '/team': 'Keep an eye on your technicians and open work.',
   '/dashboard': 'Operations summary for administrators.',
@@ -40,6 +39,39 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: () => inject(AuthService).homePath() },
       ...placeholderRoutes,
+      {
+        // Customer-only (access comes from NAV_ITEMS). 'new' must stay before ':id'.
+        path: 'my-requests',
+        canActivate: [roleGuard],
+        data: { roles: rolesFor('/my-requests') },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            title: 'My requests - FixFlow',
+            loadComponent: () =>
+              import('./features/service-requests/request-list/request-list').then(
+                (m) => m.RequestList,
+              ),
+          },
+          {
+            path: 'new',
+            title: 'New request - FixFlow',
+            loadComponent: () =>
+              import('./features/service-requests/request-form/request-form').then(
+                (m) => m.RequestForm,
+              ),
+          },
+          {
+            path: ':id',
+            title: 'Request details - FixFlow',
+            loadComponent: () =>
+              import('./features/service-requests/request-details/request-details').then(
+                (m) => m.RequestDetails,
+              ),
+          },
+        ],
+      },
       {
         path: 'profile',
         title: 'Profile - FixFlow',

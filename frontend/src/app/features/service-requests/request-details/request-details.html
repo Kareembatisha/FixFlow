@@ -1,0 +1,44 @@
+<section class="page" aria-labelledby="details-title">
+  <a class="back" routerLink="/my-requests">&larr; Back to my requests</a>
+
+  @if (loading()) {
+    <h1 id="details-title">Request details</h1>
+    <p class="state" role="status">Loading request…</p>
+  } @else if (notFound()) {
+    <h1 id="details-title">Request not found</h1>
+    <p class="state">This request doesn't exist, or you don't have access to it.</p>
+  } @else if (error(); as err) {
+    <h1 id="details-title">Request details</h1>
+    <div class="alert alert-error" role="alert">
+      {{ err.message }}
+      <button type="button" class="btn btn-outline retry" (click)="retry()">Try again</button>
+    </div>
+  } @else if (request(); as r) {
+    @if (justCreated) {
+      <div class="alert alert-success" role="status">Your request was submitted.</div>
+    }
+    <header class="header">
+      <h1 id="details-title">{{ r.code }}</h1>
+      <app-status-badge [status]="r.status" />
+    </header>
+
+    <dl class="details">
+      <dt>Title</dt>
+      <dd>{{ r.title }}</dd>
+      <dt>Service type</dt>
+      <dd>{{ serviceTypeName() }}</dd>
+      <dt>Priority</dt>
+      <dd>{{ priorityLabel(r.priority) }}</dd>
+      <dt>Description</dt>
+      <dd class="multiline">{{ r.description }}</dd>
+      <dt>Address</dt>
+      <dd>{{ r.address }}</dd>
+      <dt>Contact phone</dt>
+      <dd>{{ r.contactPhone }}</dd>
+      <dt>Preferred date</dt>
+      <dd>{{ formatDate(r.preferredDate) }}</dd>
+      <dt>Submitted</dt>
+      <dd>{{ formatDate(r.createdAt, true) }}</dd>
+    </dl>
+  }
+</section>

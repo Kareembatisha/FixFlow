@@ -1,0 +1,28 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  max-width: 40rem;
+}
+
+.lead,
+.hint,
+.optional {
+  color: var(--muted);
+}
+
+form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.retry {
+  margin-left: 0.75rem;
+  min-height: 2rem;
+  padding: 0.125rem 0.75rem;
+}

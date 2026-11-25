@@ -70,6 +70,28 @@ describe('route table', () => {
     expect(await go(denied)).toBe('/403');
   });
 
+  it('lets a customer open the request form and a request detail page', async () => {
+    await signIn('customer');
+    expect(await go('/my-requests/new')).toBe('/my-requests/new');
+    expect(harness.routeNativeElement?.querySelector('app-request-form')).not.toBeNull();
+    expect(await go('/my-requests/123')).toBe('/my-requests/123');
+    expect(harness.routeNativeElement?.querySelector('app-request-details')).not.toBeNull();
+  });
+
+  it.each<[UserRole, string]>([
+    ['technician', '/my-requests/new'],
+    ['supervisor', '/my-requests/123'],
+    ['admin', '/my-requests'],
+  ])('keeps %s out of %s', async (role, url) => {
+    await signIn(role);
+    expect(await go(url)).toBe('/403');
+  });
+
+  it('sends anonymous users away from the request pages', async () => {
+    await auth.restoreSession();
+    expect(await go('/my-requests/new')).toBe('/login?returnUrl=%2Fmy-requests%2Fnew');
+  });
+
   it.each<[UserRole, string]>([
     ['customer', '/my-requests'],
     ['technician', '/my-tasks'],
