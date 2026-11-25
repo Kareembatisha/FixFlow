@@ -8,6 +8,8 @@ import { UsersModule } from './modules/users/users.module';
 import databaseConfig from './config/database.config';
 import appConfig from './config/app.config';
 import { AuthModule } from './modules/auth/auth.module';
+import { ServiceTypesModule } from './modules/service-types/service-types.module';
+import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { AuthModule } from './modules/auth/auth.module';
 
     UsersModule,
     AuthModule,
+    ServiceTypesModule,
+    ServiceRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
