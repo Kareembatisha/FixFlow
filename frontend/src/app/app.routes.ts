@@ -13,7 +13,6 @@ const PLACEHOLDER_PAGES: Record<string, string> = {
   '/my-tasks': 'See the jobs assigned to you.',
   '/team': 'Keep an eye on your technicians and open work.',
   '/dashboard': 'Operations summary for administrators.',
-  '/users': 'Manage accounts and roles.',
 };
 
 const placeholderRoutes: Route[] = Object.entries(PLACEHOLDER_PAGES).map(([path, description]) => {
@@ -71,6 +70,41 @@ export const routes: Routes = [
               ),
           },
         ],
+      },
+      {
+        // Supervisor/admin: every request, with the workflow actions. 'requests' reuses the
+        // customer list and details pages; what each role sees and can do comes from the role.
+        path: 'requests',
+        canActivate: [roleGuard],
+        data: { roles: rolesFor('/requests') },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            title: 'Requests - FixFlow',
+            loadComponent: () =>
+              import('./features/service-requests/request-list/request-list').then(
+                (m) => m.RequestList,
+              ),
+          },
+          {
+            path: ':id',
+            title: 'Request details - FixFlow',
+            loadComponent: () =>
+              import('./features/service-requests/request-details/request-details').then(
+                (m) => m.RequestDetails,
+              ),
+          },
+        ],
+      },
+      {
+        // Admin only: create and list technicians and supervisors.
+        path: 'users',
+        title: 'Users - FixFlow',
+        canActivate: [roleGuard],
+        data: { roles: rolesFor('/users') },
+        loadComponent: () =>
+          import('./features/users/users-page/users-page').then((m) => m.UsersPage),
       },
       {
         path: 'profile',

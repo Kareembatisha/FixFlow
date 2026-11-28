@@ -1,0 +1,49 @@
+<app-modal heading="Cancel request" [locked]="submitting()" (dismissed)="closed.emit(false)">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form" novalidate>
+    <p class="lead">
+      {{ requestCode() || 'This request' }} will be closed and can't be reopened. A reason is
+      required and appears in the request's history.
+    </p>
+
+    @if (serverError(); as err) {
+      <div class="alert alert-error" role="alert">
+        {{ err.message }}
+        @if (err.details.length) {
+          <ul>
+            @for (d of err.details; track d) {
+              <li>{{ d }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <div class="field">
+      <label for="cancel-reason">Reason <span class="hint">(required)</span></label>
+      <textarea
+        id="cancel-reason"
+        rows="4"
+        formControlName="reason"
+        [attr.aria-invalid]="reasonError() ? 'true' : null"
+        [attr.aria-describedby]="reasonError() ? 'cancel-reason-error' : null"
+      ></textarea>
+      @if (reasonError(); as msg) {
+        <p class="field-error" id="cancel-reason-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        [disabled]="submitting()"
+        (click)="closed.emit(false)"
+      >
+        Keep request
+      </button>
+      <button type="submit" class="btn btn-danger" [disabled]="form.invalid || submitting()">
+        {{ submitting() ? 'Cancelling…' : 'Cancel request' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

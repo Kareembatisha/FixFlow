@@ -7,8 +7,8 @@ describe('navigation config', () => {
       navItemsFor(role).map((i) => i.label);
     expect(labels('customer')).toEqual(['My requests', 'Profile']);
     expect(labels('technician')).toEqual(['My tasks', 'Profile']);
-    expect(labels('supervisor')).toEqual(['Team overview', 'Profile']);
-    expect(labels('admin')).toEqual(['Dashboard', 'Users', 'Profile']);
+    expect(labels('supervisor')).toEqual(['Requests', 'Team overview', 'Profile']);
+    expect(labels('admin')).toEqual(['Dashboard', 'Requests', 'Users', 'Profile']);
   });
 
   it('shows nothing when signed out', () => {

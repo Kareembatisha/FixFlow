@@ -1,7 +1,9 @@
 <section class="page" aria-labelledby="list-title">
   <header class="header">
-    <h1 id="list-title">My requests</h1>
-    <a class="btn btn-primary" routerLink="/my-requests/new">New request</a>
+    <h1 id="list-title">{{ isStaff() ? 'Requests' : 'My requests' }}</h1>
+    @if (!isStaff()) {
+      <a class="btn btn-primary" routerLink="/my-requests/new">New request</a>
+    }
   </header>
 
   <div class="filters" role="search">
@@ -24,6 +26,17 @@
         }
       </select>
     </div>
+    @if (isStaff()) {
+      <div class="field">
+        <label for="priority">Priority</label>
+        <select id="priority" [formControl]="priorityControl">
+          <option value="">All priorities</option>
+          @for (option of priorityOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    }
   </div>
 
   @if (error(); as err) {
@@ -32,7 +45,9 @@
       <button type="button" class="btn btn-outline retry" (click)="retry()">Try again</button>
     </div>
   } @else if (!result()) {
-    <p class="state" role="status">Loading your requests…</p>
+    <p class="state" role="status">
+      {{ isStaff() ? 'Loading requests…' : 'Loading your requests…' }}
+    </p>
   } @else {
     @let page = result()!;
     @if (page.items.length === 0) {
@@ -42,6 +57,8 @@
           <button type="button" class="btn btn-outline" (click)="clearFilters()">
             Clear filters
           </button>
+        } @else if (isStaff()) {
+          <p>There are no requests yet.</p>
         } @else {
           <p>You haven't submitted any requests yet.</p>
           <a class="btn btn-primary" routerLink="/my-requests/new">Create your first request</a>
@@ -54,7 +71,9 @@
       <div class="table-wrap" [class.busy]="loading()" [attr.aria-busy]="loading()">
         <table>
           <caption class="visually-hidden">
-            Your service requests
+            {{
+              isStaff() ? 'All service requests' : 'Your service requests'
+            }}
           </caption>
           <thead>
             <tr>
@@ -70,7 +89,7 @@
             @for (request of page.items; track request.id) {
               <tr>
                 <td>
-                  <a [routerLink]="['/my-requests', request.id]">{{ request.code }}</a>
+                  <a [routerLink]="[basePath(), request.id]">{{ request.code }}</a>
                 </td>
                 <td class="title">{{ request.title }}</td>
                 <td>{{ typeName(request.serviceTypeId) }}</td>

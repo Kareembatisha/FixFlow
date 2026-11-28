@@ -66,7 +66,7 @@ describe('route guards', () => {
 
     it('sends signed-in users to their role home', async () => {
       await signInAs(auth, ctrl, 'supervisor');
-      expect(asString(run(guestGuard, '/login'))).toBe('/team');
+      expect(asString(run(guestGuard, '/login'))).toBe('/requests');
     });
   });
 

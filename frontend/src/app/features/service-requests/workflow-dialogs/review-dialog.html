@@ -1,0 +1,60 @@
+<app-modal heading="Review request" [locked]="submitting()" (dismissed)="closed.emit(false)">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form" novalidate>
+    <p class="lead">
+      Confirm {{ requestCode() || 'this request' }} and set how urgent it is. You can assign a
+      technician next.
+    </p>
+
+    @if (serverError(); as err) {
+      <div class="alert alert-error" role="alert">
+        {{ err.message }}
+        @if (err.details.length) {
+          <ul>
+            @for (d of err.details; track d) {
+              <li>{{ d }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <div class="field">
+      <label for="review-priority">Priority</label>
+      <select id="review-priority" formControlName="priority">
+        @for (p of priorities; track p.value) {
+          <option [value]="p.value">{{ p.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="review-note"
+        >Note <span class="hint">(optional, up to 500 characters)</span></label
+      >
+      <textarea
+        id="review-note"
+        rows="3"
+        formControlName="note"
+        [attr.aria-invalid]="noteError() ? 'true' : null"
+        [attr.aria-describedby]="noteError() ? 'review-note-error' : null"
+      ></textarea>
+      @if (noteError(); as msg) {
+        <p class="field-error" id="review-note-error">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        [disabled]="submitting()"
+        (click)="closed.emit(false)"
+      >
+        Not now
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : 'Confirm review' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

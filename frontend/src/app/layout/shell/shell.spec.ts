@@ -49,8 +49,8 @@ describe('Shell (navbar + sidebar)', () => {
   it.each<[UserRole, string[]]>([
     ['customer', ['My requests', 'Profile']],
     ['technician', ['My tasks', 'Profile']],
-    ['supervisor', ['Team overview', 'Profile']],
-    ['admin', ['Dashboard', 'Users', 'Profile']],
+    ['supervisor', ['Requests', 'Team overview', 'Profile']],
+    ['admin', ['Dashboard', 'Requests', 'Users', 'Profile']],
   ])('%s sees only its own navigation', async (role, expected) => {
     await render(role);
     expect(links()).toEqual(expected);

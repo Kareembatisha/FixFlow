@@ -1,0 +1,23 @@
+<dialog
+  #dialog
+  class="modal"
+  [attr.aria-labelledby]="titleId"
+  (cancel)="onCancel($event)"
+  (click)="onBackdropClick($event)"
+>
+  <div class="panel">
+    <header class="head">
+      <h2 [id]="titleId">{{ heading() }}</h2>
+      <button
+        type="button"
+        class="x"
+        aria-label="Close dialog"
+        [disabled]="locked()"
+        (click)="dismiss()"
+      >
+        &times;
+      </button>
+    </header>
+    <ng-content />
+  </div>
+</dialog>

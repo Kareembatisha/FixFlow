@@ -141,4 +141,67 @@ describe('ServiceRequestsService', () => {
       expect(status).toBe(400);
     });
   });
+
+  describe('workflow calls', () => {
+    it('history() reads the request history', () => {
+      let result: unknown;
+      service.history('r-1').subscribe((r) => (result = r));
+      const req = http.expectOne(`${API}/service-requests/r-1/history`);
+      expect(req.request.method).toBe('GET');
+      req.flush(envelope([{ id: 'h-1' }]));
+      expect(result).toEqual([{ id: 'h-1' }]);
+    });
+
+    it('review() PATCHes the priority and note, never a status', () => {
+      service.review('r-1', { priority: 'high', note: 'ok' }).subscribe();
+      const req = http.expectOne(`${API}/service-requests/r-1/review`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ priority: 'high', note: 'ok' });
+      expect('status' in req.request.body).toBe(false);
+      req.flush(envelope(REQUEST));
+    });
+
+    it('assign() POSTs the technician and appointment', () => {
+      service
+        .assign('r-1', { technicianId: 't-1', scheduledAt: '2026-12-01T10:00:00.000Z' })
+        .subscribe();
+      const req = http.expectOne(`${API}/service-requests/r-1/assign`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        technicianId: 't-1',
+        scheduledAt: '2026-12-01T10:00:00.000Z',
+      });
+      req.flush(envelope({}));
+    });
+
+    it('reassign() PATCHes the new technician', () => {
+      service.reassign('r-1', { technicianId: 't-2' }).subscribe();
+      const req = http.expectOne(`${API}/service-requests/r-1/reassign`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ technicianId: 't-2' });
+      req.flush(envelope({}));
+    });
+
+    it('cancel() PATCHes the reason', () => {
+      service.cancel('r-1', { reason: 'Duplicate' }).subscribe();
+      const req = http.expectOne(`${API}/service-requests/r-1/cancel`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ reason: 'Duplicate' });
+      req.flush(envelope(REQUEST));
+    });
+
+    it('surfaces an invalid transition message from the backend', () => {
+      let message = '';
+      service.review('r-1', { priority: 'low' }).subscribe({
+        error: (e) => (message = e.error.message),
+      });
+      http
+        .expectOne(`${API}/service-requests/r-1/review`)
+        .flush(errorEnvelope(400, 'Cannot change request status from assigned to reviewed'), {
+          status: 400,
+          statusText: 'Bad Request',
+        });
+      expect(message).toContain('Cannot change request status');
+    });
+  });
 });

@@ -63,7 +63,10 @@ describe('route table', () => {
   it.each<[UserRole, string, string]>([
     ['customer', '/my-requests', '/my-tasks'],
     ['technician', '/my-tasks', '/team'],
-    ['supervisor', '/team', '/dashboard'],
+    ['supervisor', '/requests', '/dashboard'],
+    ['supervisor', '/requests', '/users'],
+    ['customer', '/my-requests', '/requests'],
+    ['customer', '/my-requests', '/users'],
   ])('%s may open %s but not %s', async (role, allowed, denied) => {
     await signIn(role);
     expect(await go(allowed)).toBe(allowed);
@@ -95,7 +98,7 @@ describe('route table', () => {
   it.each<[UserRole, string]>([
     ['customer', '/my-requests'],
     ['technician', '/my-tasks'],
-    ['supervisor', '/team'],
+    ['supervisor', '/requests'],
     ['admin', '/dashboard'],
   ])('"/" lands %s on %s', async (role, home) => {
     await signIn(role);

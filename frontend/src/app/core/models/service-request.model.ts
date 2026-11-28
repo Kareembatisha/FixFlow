@@ -45,6 +45,61 @@ export interface ServiceRequest {
   priority: RequestPriority;
   /** Unconfirmed (the list is sorted by it, but serialization is not verified). */
   createdAt?: string;
+  /** Set once a supervisor has reviewed the request. */
+  reviewedAt?: string | null;
+  /** Mandatory reason entered when the request was cancelled. */
+  cancelReason?: string | null;
+  /** Only on GET /service-requests/:id, and only for staff (customers know who they are). */
+  customer?: RequestCustomer | null;
+  /** Only on GET /service-requests/:id: the assignment, once one exists. */
+  workOrder?: RequestWorkOrder | null;
+}
+
+/** Safe customer fields the details endpoint exposes. */
+export interface RequestCustomer {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+}
+
+/** The assignment of a request to a technician. */
+export interface RequestWorkOrder {
+  id: string;
+  technicianId: string;
+  scheduledAt: string | null;
+  technician?: { id: string; fullName: string; phone: string | null } | null;
+}
+
+/** Body of PATCH /service-requests/:id/review. */
+export interface ReviewPayload {
+  priority: RequestPriority;
+  /** Optional, up to 500 characters. */
+  note?: string;
+}
+
+/** Body of POST /service-requests/:id/assign and PATCH /service-requests/:id/reassign. */
+export interface AssignPayload {
+  technicianId: string;
+  /** ISO date-time. Omit it when no appointment is set. */
+  scheduledAt?: string;
+}
+
+/** Body of PATCH /service-requests/:id/cancel. The reason is mandatory (up to 1000 characters). */
+export interface CancelPayload {
+  reason: string;
+}
+
+/** One row of GET /service-requests/:id/history. */
+export interface StatusHistoryEntry {
+  id: string;
+  /** Null for the first entry (creation). */
+  oldStatus: RequestStatus | null;
+  newStatus: RequestStatus;
+  reason: string | null;
+  createdAt: string;
+  changedById: string;
+  changedBy?: { id: string; fullName: string; role: string } | null;
 }
 
 /** Query parameters of GET /service-requests. All optional. */

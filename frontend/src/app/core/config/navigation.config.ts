@@ -20,7 +20,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export const ROLE_HOME: Record<UserRole, string> = {
   customer: '/my-requests',
   technician: '/my-tasks',
-  supervisor: '/team',
+  supervisor: '/requests',
   admin: '/dashboard',
 };
 
@@ -32,8 +32,9 @@ export const ROLE_HOME: Record<UserRole, string> = {
 export const NAV_ITEMS: readonly NavItem[] = [
   { label: 'My requests', path: '/my-requests', roles: ['customer'] },
   { label: 'My tasks', path: '/my-tasks', roles: ['technician'] },
-  { label: 'Team overview', path: '/team', roles: ['supervisor'] },
   { label: 'Dashboard', path: '/dashboard', roles: ['admin'] },
+  { label: 'Requests', path: '/requests', roles: ['supervisor', 'admin'] },
+  { label: 'Team overview', path: '/team', roles: ['supervisor'] },
   { label: 'Users', path: '/users', roles: ['admin'] },
   { label: 'Profile', path: '/profile', roles: ALL_ROLES },
 ];

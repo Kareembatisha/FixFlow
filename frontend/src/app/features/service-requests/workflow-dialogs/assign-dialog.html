@@ -1,0 +1,77 @@
+<app-modal [heading]="heading()" [locked]="submitting()" (dismissed)="closed.emit(false)">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form" novalidate>
+    <p class="lead">
+      Choose who will handle {{ requestCode() || 'this request' }} and, if you know it, when.
+    </p>
+
+    @if (serverError(); as err) {
+      <div class="alert alert-error" role="alert">
+        {{ err.message }}
+        @if (err.details.length) {
+          <ul>
+            @for (d of err.details; track d) {
+              <li>{{ d }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @if (loadingTechnicians()) {
+      <p class="state" role="status">Loading technicians…</p>
+    } @else if (technicianLoadError(); as err) {
+      <div class="alert alert-error" role="alert">
+        {{ err.message }}
+        <button type="button" class="btn btn-outline retry" (click)="loadTechnicians()">
+          Try again
+        </button>
+      </div>
+    } @else if (options().length === 0) {
+      <div class="alert alert-info" role="status">
+        There are no other active technicians to choose from. An admin can create one from the Users
+        page.
+      </div>
+    } @else {
+      <div class="field">
+        <label for="assign-technician">Technician</label>
+        <select
+          id="assign-technician"
+          formControlName="technicianId"
+          [attr.aria-invalid]="technicianError() ? 'true' : null"
+          [attr.aria-describedby]="technicianError() ? 'assign-technician-error' : null"
+        >
+          <option value="">Select a technician</option>
+          @for (tech of options(); track tech.id) {
+            <option [value]="tech.id">{{ tech.fullName }}</option>
+          }
+        </select>
+        @if (technicianError(); as msg) {
+          <p class="field-error" id="assign-technician-error">{{ msg }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="assign-when">Appointment <span class="hint">(optional)</span></label>
+        <input id="assign-when" type="datetime-local" formControlName="scheduledAt" />
+      </div>
+    }
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        [disabled]="submitting()"
+        (click)="closed.emit(false)"
+      >
+        Not now
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="submitting() || loadingTechnicians() || options().length === 0"
+      >
+        {{ submitting() ? 'Saving…' : mode() === 'reassign' ? 'Reassign' : 'Assign' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

@@ -10,12 +10,15 @@ import {
 } from '../../../core/config/request-labels.config';
 import { Paginated } from '../../../core/models/pagination.model';
 import {
+  REQUEST_PRIORITIES,
   REQUEST_STATUSES,
+  RequestPriority,
   RequestStatus,
   ServiceRequest,
   ServiceRequestQuery,
 } from '../../../core/models/service-request.model';
 import { ServiceType } from '../../../core/models/service-type.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ServiceRequestsService } from '../../../core/services/service-requests.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import { ApiErrorInfo, parseApiError } from '../../../core/utils/api-error';
@@ -26,14 +29,17 @@ const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type StatusFilter = RequestStatus | '';
+type PriorityFilter = RequestPriority | '';
 interface Filters {
   status: StatusFilter;
+  priority: PriorityFilter;
   search: string;
   page: number;
 }
 
 /**
- * The signed-in customer's requests. Filtering, search and paging are all server-side: the
+ * The request list. A customer sees their own requests (/my-requests); supervisors and admins see
+ * every request (/requests) and can also filter by priority. Filtering, search and paging are all server-side: the
  * component only holds the current filters and shows whatever page + meta the API returns.
  * (Ownership is enforced by the backend, so no user id is ever sent.)
  */
@@ -46,6 +52,19 @@ interface Filters {
 export class RequestList implements OnInit {
   private readonly api = inject(ServiceRequestsService);
   private readonly serviceTypesApi = inject(ServiceTypesService);
+  private readonly auth = inject(AuthService);
+
+  /** Staff work from /requests and see everyone's requests; customers only their own. */
+  protected readonly isStaff = computed(() => {
+    const role = this.auth.role();
+    return role === 'supervisor' || role === 'admin';
+  });
+  protected readonly basePath = computed(() => (this.isStaff() ? '/requests' : '/my-requests'));
+
+  protected readonly priorityOptions = REQUEST_PRIORITIES.map((value) => ({
+    value,
+    label: REQUEST_PRIORITY_LABELS[value],
+  }));
 
   protected readonly statusOptions = REQUEST_STATUSES.map((value) => ({
     value,
@@ -57,10 +76,11 @@ export class RequestList implements OnInit {
 
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected readonly statusControl = new FormControl<StatusFilter>('', { nonNullable: true });
+  protected readonly priorityControl = new FormControl<PriorityFilter>('', { nonNullable: true });
 
-  private readonly filters = signal<Filters>({ status: '', search: '', page: 1 });
+  private readonly filters = signal<Filters>({ status: '', priority: '', search: '', page: 1 });
   protected readonly hasFilters = computed(
-    () => !!this.filters().status || !!this.filters().search,
+    () => !!this.filters().status || !!this.filters().priority || !!this.filters().search,
   );
 
   protected readonly loading = signal(true);
@@ -101,6 +121,10 @@ export class RequestList implements OnInit {
     this.statusControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe((status) => this.update({ status }));
+
+    this.priorityControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((priority) => this.update({ priority }));
   }
 
   ngOnInit(): void {
@@ -122,7 +146,8 @@ export class RequestList implements OnInit {
   protected clearFilters(): void {
     this.searchControl.setValue('', { emitEvent: false });
     this.statusControl.setValue('', { emitEvent: false });
-    this.update({ status: '', search: '' });
+    this.priorityControl.setValue('', { emitEvent: false });
+    this.update({ status: '', priority: '', search: '' });
   }
 
   protected previousPage(): void {
@@ -142,13 +167,14 @@ export class RequestList implements OnInit {
   }
 
   private fetch(): void {
-    const { status, search, page } = this.filters();
+    const { status, priority, search, page } = this.filters();
     this.loading.set(true);
     this.error.set(null);
     this.queries.next({
       page,
       limit: PAGE_SIZE,
       ...(status ? { status } : {}),
+      ...(priority ? { priority } : {}),
       ...(search ? { search } : {}),
     });
   }

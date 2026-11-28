@@ -1,5 +1,7 @@
 <section class="page" aria-labelledby="details-title">
-  <a class="back" routerLink="/my-requests">&larr; Back to my requests</a>
+  <a class="back" [routerLink]="listPath()">
+    &larr; Back to {{ isStaff() ? 'requests' : 'my requests' }}
+  </a>
 
   @if (loading()) {
     <h1 id="details-title">Request details</h1>
@@ -22,6 +24,27 @@
       <app-status-badge [status]="r.status" />
     </header>
 
+    @if (actions().length) {
+      <div class="actions" role="group" aria-label="Request actions">
+        @if (has('review')) {
+          <button type="button" class="btn btn-primary" (click)="open('review')">Review</button>
+        }
+        @if (has('assign')) {
+          <button type="button" class="btn btn-primary" (click)="open('assign')">
+            Assign technician
+          </button>
+        }
+        @if (has('reassign')) {
+          <button type="button" class="btn btn-outline" (click)="open('reassign')">Reassign</button>
+        }
+        @if (has('cancel')) {
+          <button type="button" class="btn btn-outline btn-danger-outline" (click)="open('cancel')">
+            Cancel request
+          </button>
+        }
+      </div>
+    }
+
     <dl class="details">
       <dt>Title</dt>
       <dd>{{ r.title }}</dd>
@@ -39,6 +62,74 @@
       <dd>{{ formatDate(r.preferredDate) }}</dd>
       <dt>Submitted</dt>
       <dd>{{ formatDate(r.createdAt, true) }}</dd>
+      @if (isStaff() && r.customer; as customer) {
+        <dt>Customer</dt>
+        <dd>{{ customer.fullName }} &middot; {{ customer.email }}</dd>
+      }
+      @if (r.workOrder; as order) {
+        <dt>Technician</dt>
+        <dd>{{ order.technician?.fullName ?? 'Not available' }}</dd>
+        <dt>Appointment</dt>
+        <dd>{{ order.scheduledAt ? formatDate(order.scheduledAt, true) : 'Not scheduled' }}</dd>
+      }
+      @if (r.status === 'cancelled' && r.cancelReason) {
+        <dt>Cancellation reason</dt>
+        <dd class="multiline">{{ r.cancelReason }}</dd>
+      }
     </dl>
+
+    <section class="history" aria-labelledby="history-title">
+      <h2 id="history-title">History</h2>
+      @if (history(); as entries) {
+        <app-timeline [entries]="entries" />
+      } @else if (historyError(); as err) {
+        <div class="alert alert-error" role="alert">
+          Couldn't load the history. {{ err.message }}
+          <button type="button" class="btn btn-outline retry" (click)="retry()">Try again</button>
+        </div>
+      } @else {
+        <p class="state" role="status">Loading history…</p>
+      }
+      @if (history() && historyError(); as err) {
+        <div class="alert alert-error" role="alert">
+          The history may be out of date. {{ err.message }}
+        </div>
+      }
+    </section>
+
+    @switch (dialog()) {
+      @case ('review') {
+        <app-review-dialog
+          [requestId]="r.id"
+          [requestCode]="r.code"
+          [currentPriority]="r.priority"
+          (closed)="onDialogClosed($event)"
+        />
+      }
+      @case ('assign') {
+        <app-assign-dialog
+          mode="assign"
+          [requestId]="r.id"
+          [requestCode]="r.code"
+          (closed)="onDialogClosed($event)"
+        />
+      }
+      @case ('reassign') {
+        <app-assign-dialog
+          mode="reassign"
+          [requestId]="r.id"
+          [requestCode]="r.code"
+          [currentTechnicianId]="r.workOrder?.technicianId ?? null"
+          (closed)="onDialogClosed($event)"
+        />
+      }
+      @case ('cancel') {
+        <app-cancel-dialog
+          [requestId]="r.id"
+          [requestCode]="r.code"
+          (closed)="onDialogClosed($event)"
+        />
+      }
+    }
   }
 </section>

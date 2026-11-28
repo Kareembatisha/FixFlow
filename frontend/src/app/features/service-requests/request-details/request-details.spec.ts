@@ -56,6 +56,31 @@ describe('RequestDetails', () => {
   const flushTypes = () =>
     ctrl.expectOne(`${API}/service-types`).flush(envelope([{ id: 'st-1', name: 'Plumbing' }]));
 
+  const HISTORY = [
+    {
+      id: 'h-2',
+      oldStatus: 'new',
+      newStatus: 'reviewed',
+      reason: 'Looks urgent',
+      createdAt: '2026-11-21T09:00:00.000Z',
+      changedById: 's-1',
+      changedBy: { id: 's-1', fullName: 'Sara Supervisor', role: 'supervisor' },
+    },
+    {
+      id: 'h-1',
+      oldStatus: null,
+      newStatus: 'new',
+      reason: null,
+      createdAt: '2026-11-20T10:00:00.000Z',
+      changedById: 'c-1',
+      changedBy: { id: 'c-1', fullName: 'Carl Customer', role: 'customer' },
+    },
+  ];
+
+  /** Answers the history request that accompanies every load of the page. */
+  const flushHistory = (id = 'r-1', entries: object[] = HISTORY) =>
+    ctrl.expectOne(`${API}/service-requests/${id}/history`).flush(envelope(entries));
+
   afterEach(() => ctrl.verify());
 
   it('loads the request by the route id and shows all its information', async () => {
@@ -63,6 +88,7 @@ describe('RequestDetails', () => {
     expect($('[role=status]')?.textContent).toMatch(/loading request/i);
     flushTypes();
     ctrl.expectOne(`${API}/service-requests/r-1`).flush(envelope(REQUEST));
+    flushHistory();
     await settle();
 
     expect($('h1')?.textContent).toContain('SR-0001');
@@ -77,12 +103,14 @@ describe('RequestDetails', () => {
     expect(text).toContain('1 Dec 2026');
   });
 
-  it('is read-only: no inputs or actions besides navigation', async () => {
+  it('has no workflow buttons for a customer once the request is past New', async () => {
     create();
     flushTypes();
     ctrl.expectOne(`${API}/service-requests/r-1`).flush(envelope(REQUEST));
+    flushHistory();
     await settle();
     expect(el.querySelector('input, textarea, select, button, form')).toBeNull();
+    expect($('.actions')).toBeNull();
   });
 
   it('copes with a missing preferred date and an unavailable service type', async () => {
@@ -91,6 +119,7 @@ describe('RequestDetails', () => {
     ctrl
       .expectOne(`${API}/service-requests/r-1`)
       .flush(envelope({ ...REQUEST, preferredDate: null }));
+    flushHistory();
     await settle();
     const text = $('.details')!.textContent!;
     expect(text).toContain('Not available');
@@ -101,6 +130,7 @@ describe('RequestDetails', () => {
     create('r-1', { created: true });
     flushTypes();
     ctrl.expectOne(`${API}/service-requests/r-1`).flush(envelope(REQUEST));
+    flushHistory();
     await settle();
     expect($('.alert-success')?.textContent).toMatch(/your request was submitted/i);
   });
@@ -109,6 +139,7 @@ describe('RequestDetails', () => {
     create();
     flushTypes();
     ctrl.expectOne(`${API}/service-requests/r-1`).flush(envelope(REQUEST));
+    flushHistory();
     await settle();
     expect($('.alert-success')).toBeNull();
   });
@@ -119,6 +150,7 @@ describe('RequestDetails', () => {
     ctrl
       .expectOne(`${API}/service-requests/nope`)
       .flush(errorEnvelope(status, 'Not found'), { status, statusText: 'Error' });
+    flushHistory('nope', []);
     await settle();
 
     expect($('h1')?.textContent).toMatch(/request not found/i);
@@ -132,11 +164,13 @@ describe('RequestDetails', () => {
     ctrl
       .expectOne(`${API}/service-requests/r-1`)
       .flush(errorEnvelope(500, 'Server down'), { status: 500, statusText: 'Server Error' });
+    flushHistory();
     await settle();
     expect($('.alert-error')?.textContent).toMatch(/server down/i);
 
     $<HTMLButtonElement>('.alert-error button')!.click();
     ctrl.expectOne(`${API}/service-requests/r-1`).flush(envelope(REQUEST));
+    flushHistory();
     await settle();
     expect($('.alert-error')).toBeNull();
     expect($('h1')?.textContent).toContain('SR-0001');

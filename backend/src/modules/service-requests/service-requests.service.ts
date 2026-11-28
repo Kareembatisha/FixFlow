@@ -184,7 +184,10 @@ export class ServiceRequestsService {
     };
   }
 
-  async findOne(id: string, user: User): Promise<ServiceRequest> {
+  async findOne(
+    id: string,
+    user: User,
+  ): Promise<ServiceRequest & { workOrder: WorkOrder | null }> {
     const queryBuilder =
       this.serviceRequestRepository.createQueryBuilder('serviceRequest');
 
@@ -212,13 +215,32 @@ export class ServiceRequestsService {
       );
     }
 
+    // Expose only the safe customer fields (never the password hash).
+    queryBuilder
+      .leftJoin('serviceRequest.customer', 'customer')
+      .addSelect([
+        'customer.id',
+        'customer.fullName',
+        'customer.email',
+        'customer.phone',
+      ]);
+
     const serviceRequest = await queryBuilder.getOne();
 
     if (!serviceRequest) {
       throw new NotFoundException('Service request not found');
     }
 
-    return serviceRequest;
+    // Attach the work order (with its technician's public fields), if any.
+    const workOrder = await this.dataSource
+      .getRepository(WorkOrder)
+      .createQueryBuilder('workOrder')
+      .leftJoin('workOrder.technician', 'technician')
+      .addSelect(['technician.id', 'technician.fullName', 'technician.phone'])
+      .where('workOrder.serviceRequestId = :id', { id: serviceRequest.id })
+      .getOne();
+
+    return Object.assign(serviceRequest, { workOrder });
   }
 
   async findHistory(id: string, user: User): Promise<StatusHistory[]> {
@@ -401,7 +423,20 @@ export class ServiceRequestsService {
         workOrder.scheduledAt = new Date(dto.scheduledAt);
       }
 
-      return manager.save(WorkOrder, workOrder);
+      const savedWorkOrder = await manager.save(WorkOrder, workOrder);
+
+      // Reassigning does not change the status, but it must still show up in
+      // the Timeline: record an entry whose old and new status are the same.
+      await this.statusHistoryService.record(manager, {
+        entityType: 'service_request',
+        entityId: request.id,
+        oldStatus: RequestStatus.ASSIGNED,
+        newStatus: RequestStatus.ASSIGNED,
+        changedById: user.id,
+        reason: `Reassigned to ${technician.fullName}`,
+      });
+
+      return savedWorkOrder;
     });
   }
 }

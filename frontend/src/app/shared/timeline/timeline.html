@@ -1,0 +1,32 @@
+@if (steps().length === 0) {
+  <p class="empty">No history yet.</p>
+} @else {
+  <ol class="timeline">
+    @for (step of steps(); track step.id) {
+      <li class="step" [class.update]="step.kind === 'update'">
+        <div class="what">
+          @if (step.kind === 'change') {
+            <app-status-badge [status]="step.status" />
+            <span class="from">from {{ step.from }}</span>
+          } @else if (step.kind === 'created') {
+            <app-status-badge [status]="step.status" />
+            <strong>{{ step.title }}</strong>
+          } @else {
+            <strong>{{ step.title }}</strong>
+          }
+        </div>
+        <p class="meta">
+          By {{ step.by }}
+          @if (step.role) {
+            ({{ step.role }})
+          }
+          &middot;
+          <time [attr.datetime]="step.at">{{ formatDate(step.at, true) }}</time>
+        </p>
+        @if (step.reason) {
+          <p class="reason"><span class="label">Reason:</span> {{ step.reason }}</p>
+        }
+      </li>
+    }
+  </ol>
+}

@@ -1,0 +1,27 @@
+<div class="toasts" aria-live="polite">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div
+      class="toast toast-{{ toast.kind }}"
+      [attr.role]="toast.kind === 'error' ? 'alert' : 'status'"
+    >
+      <div class="body">
+        <p>{{ toast.message }}</p>
+        @if (toast.details.length) {
+          <ul>
+            @for (detail of toast.details; track detail) {
+              <li>{{ detail }}</li>
+            }
+          </ul>
+        }
+      </div>
+      <button
+        type="button"
+        class="close"
+        aria-label="Dismiss notification"
+        (click)="toastService.dismiss(toast.id)"
+      >
+        &times;
+      </button>
+    </div>
+  }
+</div>
